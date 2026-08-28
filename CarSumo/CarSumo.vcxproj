@@ -124,7 +124,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>../SFML-2.6.2/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>RoboCatPCH.hpp</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>CarSumoPCH.hpp</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -162,7 +162,6 @@
     <ClInclude Include="InputState.hpp" />
     <ClInclude Include="LinkingContext.hpp" />
     <ClInclude Include="MemoryBitStream.hpp" />
-    <ClInclude Include="Mouse.hpp" />
     <ClInclude Include="Move.hpp" />
     <ClInclude Include="MoveList.hpp" />
     <ClInclude Include="NetworkManager.hpp" />
@@ -182,7 +181,6 @@
     <ClInclude Include="UDPSocket.hpp" />
     <ClInclude Include="WeightedTimedMovingAverage.hpp" />
     <ClInclude Include="World.hpp" />
-    <ClInclude Include="Yarn.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AckRange.cpp" />
@@ -193,7 +191,6 @@
     <ClCompile Include="InFlightPacket.cpp" />
     <ClCompile Include="InputState.cpp" />
     <ClCompile Include="MemoryBitStream.cpp" />
-    <ClCompile Include="Mouse.cpp" />
     <ClCompile Include="Move.cpp" />
     <ClCompile Include="MoveList.cpp" />
     <ClCompile Include="NetworkManager.cpp" />
@@ -214,7 +211,6 @@
     <ClCompile Include="Timing.cpp" />
     <ClCompile Include="UDPSocket.cpp" />
     <ClCompile Include="World.cpp" />
-    <ClCompile Include="Yarn.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

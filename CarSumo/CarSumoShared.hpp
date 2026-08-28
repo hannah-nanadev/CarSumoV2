@@ -82,8 +82,6 @@ class GameObject;
 #include "CarSumo.hpp"
 #include "World.hpp"
 #include "Timing.hpp"
-#include "Mouse.hpp"
-#include "Yarn.hpp"
 #include "StringUtils.hpp"
 #include "ScoreBoardManager.hpp"
 

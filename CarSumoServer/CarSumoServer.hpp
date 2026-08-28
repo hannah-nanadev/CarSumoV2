@@ -1,4 +1,4 @@
-enum ECatControlType
+enum ECarControlType
 {
 	ESCT_Human,
 	ESCT_AI
@@ -12,7 +12,7 @@ public:
 
 	virtual void Update() override;
 
-	void SetCatControlType(ECatControlType inCatControlType) { mCatControlType = inCatControlType; }
+	void SetCarControlType(ECarControlType inCarControlType) { mCarControlType = inCarControlType; }
 
 	void TakeDamage(int inDamagingPlayerId);
 
@@ -21,13 +21,7 @@ protected:
 
 private:
 
-	void HandleShooting();
-
-	ECatControlType	mCatControlType;
-
-
-	float		mTimeOfNextShot;
-	float		mTimeBetweenShots;
+	ECarControlType	mCarControlType;
 
 };
 

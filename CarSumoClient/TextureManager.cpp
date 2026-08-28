@@ -1,4 +1,4 @@
-#include "RoboCatClientPCH.hpp"
+#include "CarSumoClientPCH.hpp"
 
 std::unique_ptr< TextureManager >		TextureManager::sInstance;
 
@@ -10,8 +10,6 @@ void TextureManager::StaticInit()
 TextureManager::TextureManager()
 {
 	CacheTexture("cat", "../Assets/cat.png");
-	CacheTexture("mouse", "../Assets/mouse.png");
-	CacheTexture("yarn", "../Assets/yarn.png");
 }
 
 TexturePtr	TextureManager::GetTexture(const string& inTextureName)

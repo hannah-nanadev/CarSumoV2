@@ -52,7 +52,7 @@ private:
 
 	//bounce fraction when hitting various things
 	float				mWallRestitution;
-	float				mCatRestitution;
+	float				mCarRestitution;
 
 
 	uint32_t			mPlayerId;
@@ -66,7 +66,6 @@ protected:
 	float				mThrustDir;
 	int					mHealth;
 
-	bool				mIsShooting;
 };
 
 typedef shared_ptr< CarSumo >	CarSumoPtr;

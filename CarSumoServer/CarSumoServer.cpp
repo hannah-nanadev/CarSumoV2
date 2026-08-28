@@ -1,9 +1,7 @@
 #include "CarSumoServerPCH.hpp"
 
 CarSumoServer::CarSumoServer() :
-	mCatControlType(ESCT_Human),
-	mTimeOfNextShot(0.f),
-	mTimeBetweenShots(0.2f)
+	mCarControlType(ESCT_Human)
 {}
 
 void CarSumoServer::HandleDying()
@@ -21,7 +19,7 @@ void CarSumoServer::Update()
 
 	//are you controlled by a player?
 	//if so, is there a move we haven't processed yet?
-	if (mCatControlType == ESCT_Human)
+	if (mCarControlType == ESCT_Human)
 	{
 		ClientProxyPtr client = NetworkManagerServer::sInstance->GetClientProxy(GetPlayerId());
 		if (client)
@@ -49,28 +47,11 @@ void CarSumoServer::Update()
 		SimulateMovement(Timing::sInstance.GetDeltaTime());
 	}
 
-
-	HandleShooting();
-
-	if (!Math::Is2DVectorEqual(oldLocation, GetLocation()) ||
-		!Math::Is2DVectorEqual(oldVelocity, GetVelocity()) ||
+	if (!RoboMath::Is2DVectorEqual(oldLocation, GetLocation()) ||
+		!RoboMath::Is2DVectorEqual(oldVelocity, GetVelocity()) ||
 		oldRotation != GetRotation())
 	{
 		NetworkManagerServer::sInstance->SetStateDirty(GetNetworkId(), ECRS_Pose);
-	}
-}
-
-void CarSumoServer::HandleShooting()
-{
-	float time = Timing::sInstance.GetFrameStartTime();
-	if (mIsShooting && Timing::sInstance.GetFrameStartTime() > mTimeOfNextShot)
-	{
-		//not exact, but okay
-		mTimeOfNextShot = time + mTimeBetweenShots;
-
-		//fire!
-		YarnPtr yarn = std::static_pointer_cast<Yarn>(GameObjectRegistry::sInstance->CreateGameObject('YARN'));
-		yarn->InitFromShooter(this);
 	}
 }
 

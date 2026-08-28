@@ -1,10 +1,5 @@
-
-#include "RoboCatServerPCH.hpp"
+#include "CarSumoServerPCH.hpp"
 #include <iostream>
-
-
-
-//uncomment this when you begin working on the server
 
 bool Server::StaticInit()
 {
@@ -16,9 +11,7 @@ bool Server::StaticInit()
 Server::Server()
 {
 
-	GameObjectRegistry::sInstance->RegisterCreationFunction('RCAT', RoboCatServer::StaticCreate);
-	GameObjectRegistry::sInstance->RegisterCreationFunction('MOUS', MouseServer::StaticCreate);
-	GameObjectRegistry::sInstance->RegisterCreationFunction('YARN', YarnServer::StaticCreate);
+	GameObjectRegistry::sInstance->RegisterCreationFunction('CSMO', CarSumoServer::StaticCreate);
 
 	InitNetworkManager();
 
@@ -48,33 +41,10 @@ bool Server::InitNetworkManager()
 	return NetworkManagerServer::StaticInit(port);
 }
 
-
-namespace
-{
-
-	void CreateRandomMice(int inMouseCount)
-	{
-		Vector3 mouseMin(100.f, 100.f, 0.f);
-		Vector3 mouseMax(1180.f, 620.f, 0.f);
-		GameObjectPtr go;
-
-		//make a mouse somewhere- where will these come from?
-		for (int i = 0; i < inMouseCount; ++i)
-		{
-			go = GameObjectRegistry::sInstance->CreateGameObject('MOUS');
-			Vector3 mouseLocation = RoboMath::GetRandomVector(mouseMin, mouseMax);
-			go->SetLocation(mouseLocation);
-		}
-	}
-
-
-}
-
-
 void Server::SetupWorld()
 {
 	//spawn some random mice
-	CreateRandomMice(10);
+	//CreateRandomMice(10);
 
 	//spawn more random mice!
 	//CreateRandomMice(10);
@@ -86,7 +56,7 @@ void Server::DoFrame()
 
 	NetworkManagerServer::sInstance->CheckForDisconnects();
 
-	NetworkManagerServer::sInstance->RespawnCats();
+	NetworkManagerServer::sInstance->RespawnCars();
 
 	Engine::DoFrame();
 
@@ -100,12 +70,12 @@ void Server::HandleNewClient(ClientProxyPtr inClientProxy)
 	int playerId = inClientProxy->GetPlayerId();
 
 	ScoreBoardManager::sInstance->AddEntry(playerId, inClientProxy->GetName());
-	SpawnCatForPlayer(playerId);
+	SpawnCarForPlayer(playerId);
 }
 
-void Server::SpawnCatForPlayer(int inPlayerId)
+void Server::SpawnCarForPlayer(int inPlayerId)
 {
-	RoboCatPtr cat = std::static_pointer_cast<RoboCat>(GameObjectRegistry::sInstance->CreateGameObject('RCAT'));
+	CarSumoPtr cat = std::static_pointer_cast<CarSumo>(GameObjectRegistry::sInstance->CreateGameObject('RCAT'));
 	cat->SetColor(ScoreBoardManager::sInstance->GetEntry(inPlayerId)->GetColor());
 	cat->SetPlayerId(inPlayerId);
 	//gotta pick a better spawn location than this...
@@ -119,14 +89,14 @@ void Server::HandleLostClient(ClientProxyPtr inClientProxy)
 	int playerId = inClientProxy->GetPlayerId();
 
 	ScoreBoardManager::sInstance->RemoveEntry(playerId);
-	RoboCatPtr cat = GetCatForPlayer(playerId);
+	CarSumoPtr cat = GetCarForPlayer(playerId);
 	if (cat)
 	{
 		cat->SetDoesWantToDie(true);
 	}
 }
 
-RoboCatPtr Server::GetCatForPlayer(int inPlayerId)
+CarSumoPtr Server::GetCarForPlayer(int inPlayerId)
 {
 	//run through the objects till we find the cat...
 	//it would be nice if we kept a pointer to the cat on the clientproxy
@@ -136,10 +106,10 @@ RoboCatPtr Server::GetCatForPlayer(int inPlayerId)
 	for (int i = 0, c = gameObjects.size(); i < c; ++i)
 	{
 		GameObjectPtr go = gameObjects[i];
-		RoboCat* cat = go->GetAsCat();
+		CarSumo* cat = go->GetAsCar();
 		if (cat && cat->GetPlayerId() == inPlayerId)
 		{
-			return std::static_pointer_cast<RoboCat>(go);
+			return std::static_pointer_cast<CarSumo>(go);
 		}
 	}
 

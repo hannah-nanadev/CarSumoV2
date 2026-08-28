@@ -90,7 +90,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>../CarSumoV2;..\SFML-2.6.2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>RoboCatServerPCH.hpp</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>CarSumoServerPCH.hpp</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -108,7 +108,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>../CarSumo;C:\Users\loanej\dev\SFML-2.5.1\include;</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>RoboCatServerPCH.hpp</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>CarSumoServerPCH.hpp</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -126,7 +126,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>../CarSumo;..\SFML-2.6.2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>RoboCatServerPCH.hpp</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>CarSumoServerPCH.hpp</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -144,7 +144,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>../CarSumo;C:\Users\loanej\dev\SFML-2.5.1\include;</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>RoboCatServerPCH.hpp</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>CarSumoServerPCH.hpp</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -156,23 +156,20 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="ClientProxy.hpp" />
-    <ClInclude Include="MouseServer.hpp" />
     <ClInclude Include="NetworkManagerServer.hpp" />
     <ClInclude Include="ReplicationManagerServer.hpp" />
     <ClInclude Include="ReplicationManagerTransmissionData.hpp" />
     <ClInclude Include="CarSumoServer.hpp" />
     <ClInclude Include="CarSumoServerPCH.hpp" />
     <ClInclude Include="Server.hpp" />
-    <ClInclude Include="YarnServer.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ClientProxy.cpp" />
-    <ClCompile Include="MouseServer.cpp" />
     <ClCompile Include="NetworkManagerServer.cpp" />
     <ClCompile Include="ReplicationManagerServer.cpp" />
     <ClCompile Include="ReplicationManagerTransmissionData.cpp" />
-    <ClCompile Include="RoboCatServer.cpp" />
-    <ClCompile Include="RoboCatServerPCH.cpp">
+    <ClCompile Include="CarSumoServer.cpp" />
+    <ClCompile Include="CarSumoServerPCH.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -180,7 +177,6 @@
     </ClCompile>
     <ClCompile Include="Server.cpp" />
     <ClCompile Include="ServerMain.cpp" />
-    <ClCompile Include="YarnServer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CarSumo\CarSumo.vcxproj">

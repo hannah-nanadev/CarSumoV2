@@ -9,10 +9,9 @@ CarSumo::CarSumo() :
 	mMaxLinearSpeed(5000.f),
 	mVelocity(Vector3::Zero),
 	mWallRestitution(0.1f),
-	mCatRestitution(0.1f),
+	mCarRestitution(0.1f),
 	mThrustDir(0.f),
 	mPlayerId(0),
-	mIsShooting(false),
 	mHealth(10)
 {
 	SetCollisionRadius(60.f);
@@ -29,10 +28,6 @@ void CarSumo::ProcessInput(float inDeltaTime, const InputState& inInputState)
 	//moving...
 	float inputForwardDelta = inInputState.GetDesiredVerticalDelta();
 	mThrustDir = inputForwardDelta;
-
-
-	mIsShooting = inInputState.IsShooting();
-
 }
 
 void CarSumo::AdjustVelocityByThrust(float inDeltaTime)
@@ -85,9 +80,9 @@ void CarSumo::ProcessCollisions()
 			float collisionDist = (sourceRadius + targetRadius);
 			if (distSq < (collisionDist * collisionDist))
 			{
-				//first, tell the other guy there was a collision with a cat, so it can do something...
+				//first, tell the other guy there was a collision with a car, so it can do something...
 
-				if (target->HandleCollisionWithCat(this))
+				if (target->HandleCollisionWithCar(this))
 				{
 					//okay, you hit something!
 					//so, project your location far enough that you're not colliding
@@ -100,11 +95,11 @@ void CarSumo::ProcessCollisions()
 
 					Vector3 relVel = mVelocity;
 
-					//if other object is a cat, it might have velocity, so there might be relative velocity...
-					CarSumo* targetCat = target->GetAsCat();
-					if (targetCat)
+					//if other object is a car, it might have velocity, so there might be relative velocity...
+					CarSumo* targetCar = target->GetAsCar();
+					if (targetCar)
 					{
-						relVel -= targetCat->mVelocity;
+						relVel -= targetCar->mVelocity;
 					}
 
 					//got vel with dir between objects to figure out if they're moving towards each other
@@ -115,10 +110,10 @@ void CarSumo::ProcessCollisions()
 					{
 						Vector3 impulse = relVelDotDir * dirToTarget;
 
-						if (targetCat)
+						if (targetCar)
 						{
 							mVelocity -= impulse;
-							mVelocity *= mCatRestitution;
+							mVelocity *= mCarRestitution;
 						}
 						else
 						{

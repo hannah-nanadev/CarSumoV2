@@ -1,4 +1,4 @@
-#include "RoboCatServerPCH.hpp"
+#include "CarSumoServerPCH.hpp"
 
 namespace
 {
@@ -31,7 +31,7 @@ void	ClientProxy::RespawnCatIfNecessary()
 {
 	if (mTimeToRespawn != 0.f && Timing::sInstance.GetFrameStartTime() > mTimeToRespawn)
 	{
-		static_cast<Server*> (Engine::s_instance.get())->SpawnCatForPlayer(mPlayerId);
+		static_cast<Server*> (Engine::s_instance.get())->SpawnCarForPlayer(mPlayerId);
 		mTimeToRespawn = 0.f;
 	}
 }

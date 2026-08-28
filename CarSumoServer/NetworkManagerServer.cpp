@@ -1,4 +1,4 @@
-#include "RoboCatServerPCH.hpp"
+#include "CarSumoServerPCH.hpp"
 
 NetworkManagerServer* NetworkManagerServer::sInstance;
 
@@ -118,7 +118,7 @@ void NetworkManagerServer::SendWelcomePacket(ClientProxyPtr inClientProxy)
 	SendPacket(welcomePacket, inClientProxy->GetSocketAddress());
 }
 
-void NetworkManagerServer::RespawnCats()
+void NetworkManagerServer::RespawnCars()
 {
 	for (auto it = mAddressToClientMap.begin(), end = mAddressToClientMap.end(); it != end; ++it)
 	{
