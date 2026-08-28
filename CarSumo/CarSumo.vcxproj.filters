@@ -24,7 +24,7 @@
     <ClInclude Include="GameObject.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Math.hpp">
+    <ClInclude Include="RoboMath.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GameObjectRegistry.hpp">
@@ -119,7 +119,7 @@
     <ClCompile Include="GameObject.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Math.cpp">
+    <ClCompile Include="RoboMath.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="GameObjectRegistry.cpp">
