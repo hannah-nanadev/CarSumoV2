@@ -1,30 +1,75 @@
-/*
-* the world tracks all the live game objects. Failry inefficient for now, but not that much of a problem
-*/
+//Hannah Kellett D00260463
+
+#pragma once
+#include <SFML/Graphics.hpp>
+#include "resource_identifiers.hpp"
+#include "scene_node.hpp"
+#include "scene_layers.hpp"
+#include "car.hpp"
+#include "command_queue.hpp"
+#include "sound_player.hpp"
+#include "sprite_node.hpp"
+
+#include <array>
+#include "network_node.hpp"
+
 class World
 {
-
 public:
+	explicit World(sf::RenderTarget& output_target, FontHolder& font, SoundPlayer& sounds, bool networked = false);
+	void Update(sf::Time dt);
+	void Draw();
 
-	static void StaticInit();
+	sf::FloatRect GetViewBounds() const;
+	CommandQueue& GetCommandQueue();
 
-	static std::unique_ptr< World >		sInstance;
+	Car* AddCar(uint8_t identifier, CarType type);
+	void RemoveCar(uint8_t identifier);
 
-	void AddGameObject(GameObjectPtr inGameObject);
-	void RemoveGameObject(GameObjectPtr inGameObject);
+	bool HasAlivePlayer() const;
 
-	void Update();
-
-	const std::vector< GameObjectPtr >& GetGameObjects()	const { return mGameObjects; }
+	Car* GetCar(int identifier) const;
+	bool PollGameAction(GameActions::Action& out);
 
 private:
+	void LoadTextures();
+	void BuildScene();
+	void AdaptPlayerVelocity();
+	void AdaptPlayerPosition();
 
-	World();
+	void HandleCollisions();
 
-	int	GetIndexOfGameObject(GameObjectPtr inGameObject);
+	void UpdateSounds();
 
-	std::vector< GameObjectPtr >	mGameObjects;
+private:
+	struct SpawnPoint
+	{
+		SpawnPoint(CarType type, float x, float y) :m_type(type), m_x(x), m_y(y)
+		{
 
+		}
+		CarType m_type;
+		float m_x;
+		float m_y;
+	};
 
+private:
+	sf::RenderTarget& m_target;
+	sf::RenderTexture m_scene_texture;
+	sf::View m_camera;
+	TextureHolder m_textures;
+	FontHolder& m_fonts;
+	SoundPlayer& m_sounds;
+	SceneNode m_scene_graph;
+	std::array<SceneNode*, static_cast<int>(SceneLayers::kLayerCount)> m_scene_layers;
+	sf::FloatRect m_world_bounds;
+	sf::Vector2f m_spawn_position;
+
+	std::vector<Car*> m_player_car;
+
+	CommandQueue m_command_queue;
+	bool m_networked_world;
+	NetworkNode* m_network_node;
+	SpriteNode* m_finish_sprite;
 };
 

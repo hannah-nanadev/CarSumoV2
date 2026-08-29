@@ -11,7 +11,7 @@ enum class CarType
 	kCarCount
 };
 
-static const char* CarTypeNames[] = {
+static const char * CarTypeNames[] = {
 	"Basic",
 	"Jeep",
 	"Truck",
