@@ -185,7 +185,7 @@ uint32_t CarSumo::Write(OutputMemoryBitStream& inOutputStream, uint32_t inDirtyS
 	}
 
 
-	if (inDirtyState & ECRS_Pose)
+	if (inDirtyState & ECRS_CarType)
 	{
 		inOutputStream.Write((bool)true);
 
@@ -199,7 +199,7 @@ uint32_t CarSumo::Write(OutputMemoryBitStream& inOutputStream, uint32_t inDirtyS
 
 		inOutputStream.Write(GetRotation());
 
-		writtenState |= ECRS_Pose;
+		writtenState |= ECRS_CarType;
 	}
 	else
 	{

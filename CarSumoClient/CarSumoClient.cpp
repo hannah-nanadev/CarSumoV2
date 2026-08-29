@@ -5,7 +5,7 @@ CarSumoClient::CarSumoClient() :
 	mTimeVelocityBecameOutOfSync(0.f)
 {
 	mSpriteComponent.reset(new PlayerSpriteComponent(this));
-	mSpriteComponent->SetTexture(TextureManager::sInstance->GetTexture("cat"));
+	mSpriteComponent->SetTexture(TextureManager::sInstance->GetTexture("kCars"));
 }
 
 void CarSumoClient::HandleDying()

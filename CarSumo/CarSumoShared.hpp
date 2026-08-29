@@ -55,6 +55,8 @@ class GameObject;
 #include "SFML/Audio.hpp"
 
 #include "constants.hpp"
+#include "data_tables.hpp"
+#include "car_type.hpp"
 
 #include "RoboMath.hpp"
 
