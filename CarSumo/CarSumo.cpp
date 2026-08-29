@@ -3,6 +3,11 @@
 const float WORLD_HEIGHT = 720.f;
 const float WORLD_WIDTH = 1280.f;
 
+namespace
+{
+	const std::vector<CarData> Table = InitializeCarData();
+}
+
 CarSumo::CarSumo() :
 	GameObject(),
 	mMaxRotationSpeed(100.f),
