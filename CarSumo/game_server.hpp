@@ -2,8 +2,6 @@
 
 #pragma once
 #include <SFML/System/Vector2.hpp>
-#include <SFML/Network/TcpSocket.hpp>
-#include <SFML/Network/TcpListener.hpp>
 #include <SFML/System/Clock.hpp>
 #include <SFML/Graphics/Rect.hpp>
 #include <thread>

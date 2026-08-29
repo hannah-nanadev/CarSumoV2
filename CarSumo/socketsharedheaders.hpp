@@ -9,3 +9,5 @@
 #include "UDPSocket.hpp"
 #include "SocketAddress.hpp"
 #include "StringUtils.hpp"
+#include "InFlightPacket.hpp"
+#include "Timing.hpp"
