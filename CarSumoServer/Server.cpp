@@ -36,7 +36,17 @@ int Server::Run()
 bool Server::InitNetworkManager()
 {
 	string portString = StringUtils::GetCommandLineArg(1);
-	uint16_t port = stoi(portString);
+	uint16_t port;
+	
+	try
+	{
+		port = stoi(portString);
+	}
+	catch(std::invalid_argument)
+	{
+		std::cout << "Invalid port number provided. Using default port 50000." << std::endl;
+		port = 50000;
+	}
 
 	return NetworkManagerServer::StaticInit(port);
 }
@@ -75,7 +85,7 @@ void Server::HandleNewClient(ClientProxyPtr inClientProxy)
 
 void Server::SpawnCarForPlayer(int inPlayerId)
 {
-	CarSumoPtr cat = std::static_pointer_cast<CarSumo>(GameObjectRegistry::sInstance->CreateGameObject('RCAT'));
+	CarSumoPtr cat = std::static_pointer_cast<CarSumo>(GameObjectRegistry::sInstance->CreateGameObject('CSMO'));
 	cat->SetColor(ScoreBoardManager::sInstance->GetEntry(inPlayerId)->GetColor());
 	cat->SetPlayerId(inPlayerId);
 	//gotta pick a better spawn location than this...

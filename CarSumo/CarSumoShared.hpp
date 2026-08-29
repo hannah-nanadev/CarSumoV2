@@ -54,6 +54,8 @@ class GameObject;
 #include "SFML/Graphics.hpp"
 #include "SFML/Audio.hpp"
 
+#include "constants.hpp"
+
 #include "RoboMath.hpp"
 
 #include "StringUtils.hpp"

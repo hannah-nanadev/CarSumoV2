@@ -26,6 +26,16 @@ Client::Client()
 	string destination = StringUtils::GetCommandLineArg(1);
 	string name = StringUtils::GetCommandLineArg(2);
 
+	if(destination.empty())
+	{
+		destination = std::string(kDefaultIPV4) + ":" + std::to_string(kDefaultPort);
+	}
+
+	if (name.empty())
+	{
+		name = kDefaultPlayerName;
+	}
+
 	SocketAddressPtr serverAddress = SocketAddressFactory::CreateIPv4FromString(destination);
 
 	NetworkManagerClient::StaticInit(*serverAddress, name);
