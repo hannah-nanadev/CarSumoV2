@@ -5,9 +5,11 @@
 #include <iostream>
 #include "state.hpp"
 #include <SFML/System/Angle.hpp>
-#include "particle_node.hpp"
-#include "particletype.hpp"
 #include "sound_node.hpp"
+
+//Undefine min and max macros to avoid conflicts with std::min and std::max suggested by Copilot - prompts below
+#undef min
+#undef max
 
 World::World(sf::RenderTarget& output_target, FontHolder& font, SoundPlayer& sounds, bool networked)
 	: m_target(output_target)
@@ -139,15 +141,6 @@ void World::BuildScene()
 	background_sprite->setPosition(sf::Vector2f(m_world_bounds.position.x, m_world_bounds.position.y - view_height));
 	m_scene_layers[static_cast<int>(SceneLayers::kBackground)]->AttachChild(std::move(background_sprite));
 
-	/*
-	//Add the particle nodes to the scene
-	std::unique_ptr<ParticleNode> smokeNode(new ParticleNode(ParticleType::kSmoke, m_textures));
-	m_scene_layers[static_cast<int>(SceneLayers::kLowerAir)]->AttachChild(std::move(smokeNode));
-
-	std::unique_ptr<ParticleNode> propellantNode(new ParticleNode(ParticleType::kPropellant, m_textures));
-	m_scene_layers[static_cast<int>(SceneLayers::kLowerAir)]->AttachChild(std::move(propellantNode));
-	*/
-
 	//Add sound effect node
 	std::unique_ptr<SoundNode> soundNode(new SoundNode(m_sounds));
 	m_scene_graph.AttachChild(std::move(soundNode));
@@ -273,3 +266,14 @@ void World::UpdateSounds()
 }
 
 
+/* Several prompts were used because Copilot was uncooperative and would not pick up on the actual issue.
+Prompt 1:
+Please help me fix error E0040.
+Copilot suggested changing references to position.x to .left, position.y to .top, and size.x to .width, size.y to .height. This was not the issue. The code worked fine before the accidental introduction of the macros.
+Prompt 2:
+This did not fix it. It may be helpful to note that min and max turned purple when they used to be yellow - Another method may have replaced them on accident, and I want to specify the old one that worked.
+Copilot did the same thing again while also suggesting I include <algorithm>. Still did nothing.
+Prompt 3:
+Error has not been fixed.
+Copilot finally suggests either to undefine the min and max macros or to wrap the min and max calls in parentheses. Figured undefining was easier.
+*/

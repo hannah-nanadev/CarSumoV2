@@ -55,8 +55,12 @@ void StringUtils::Log(const char* inFormat, ...)
 #else
 	vsnprintf(temp, 4096, inFormat, args);
 #endif
-	OutputDebugString(temp);
-	OutputDebugString("\n");
+	//Change to A to prevent compilation errors suggested by Copilot - prompt below
+	OutputDebugStringA(temp);
+	OutputDebugStringA("\n");
 }
 
-
+/*
+Prompt:
+1>(compiling source file '/StringUtils.cpp') 1>    C:\Users\Hannah\Documents\GitHub\CarSumoV2\CarSumo\StringUtils.cpp(58,20): 1>    Types pointed to are unrelated; conversion requires reinterpret_cast, C-style cast or parenthesized function-style cast 1>    C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\um\debugapi.h(61,1): 1>    see declaration of 'OutputDebugStringW' 1>    C:\Users\Hannah\Documents\GitHub\CarSumoV2\CarSumo\StringUtils.cpp(58,2): 1>    while trying to match the argument list '(char [4096])' 1>C:\Users\Hannah\Documents\GitHub\CarSumoV2\CarSumo\StringUtils.cpp(59,2): error C2664: 'void OutputDebugStringW(LPCWSTR)': cannot convert argument 1 from 'const char [2]' to 'LPCWSTR' 1>(compiling source file '/StringUtils.cpp') 1>    C:\Users\Hannah\Documents\GitHub\CarSumoV2\CarSumo\StringUtils.cpp(59,20): 1>    Types pointed to are unrelated; conversion requires reinterpret_cast, C-style cast or parenthesized function-style cast 1>    C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\um\debugapi.h(61,1): 1>    see declaration of 'OutputDebugStringW' 1>    C:\Users\Hannah\Documents\GitHub\CarSumoV2\CarSumo\StringUtils.cpp(59,2): 1>    while trying to match the argument list '(const char [2])'
+*/

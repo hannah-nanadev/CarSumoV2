@@ -106,6 +106,7 @@
       <LanguageStandard>stdcpp23</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>udpPCH.hpp</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -153,6 +154,7 @@
     <ClCompile Include="multiplayer_gamestate.cpp" />
     <ClCompile Include="music_player.cpp" />
     <ClCompile Include="network_node.cpp" />
+    <ClCompile Include="Packet.cpp" />
     <ClCompile Include="pause_state.cpp" />
     <ClCompile Include="player.cpp" />
     <ClCompile Include="scene_node.cpp" />
@@ -171,7 +173,9 @@
     <ClCompile Include="text_node.cpp" />
     <ClCompile Include="Timing.cpp" />
     <ClCompile Include="title_state.cpp" />
-    <ClCompile Include="udpPCH.cpp" />
+    <ClCompile Include="udpPCH.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="UDPSocket.cpp" />
     <ClCompile Include="utility.cpp" />
     <ClCompile Include="world.cpp" />
@@ -205,6 +209,7 @@
     <ClInclude Include="music_themes.hpp" />
     <ClInclude Include="network_node.hpp" />
     <ClInclude Include="network_protocol.hpp" />
+    <ClInclude Include="Packet.hpp" />
     <ClInclude Include="pause_state.hpp" />
     <ClInclude Include="player.hpp" />
     <ClInclude Include="receiver_categories.hpp" />
@@ -233,6 +238,7 @@
     <ClInclude Include="text_node.hpp" />
     <ClInclude Include="Timing.hpp" />
     <ClInclude Include="title_state.hpp" />
+    <ClInclude Include="TransmissionData.hpp" />
     <ClInclude Include="udpPCH.hpp" />
     <ClInclude Include="UDPSocket.hpp" />
     <ClInclude Include="utility.hpp" />

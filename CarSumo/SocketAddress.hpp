@@ -60,7 +60,7 @@ private:
 
 };
 
-typedef shared_ptr< SocketAddress > SocketAddressPtr;
+typedef std::shared_ptr< SocketAddress > SocketAddressPtr;
 
 namespace std
 {

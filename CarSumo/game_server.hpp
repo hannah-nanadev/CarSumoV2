@@ -21,7 +21,7 @@ private:
 	struct RemotePeer
 	{
 		RemotePeer();
-		sf::TcpSocket m_socket;
+		UDPSocket m_socket;
 		sf::Time m_last_packet_time;
 		std::vector<uint8_t> m_car_identifiers;
 		bool m_ready;
@@ -46,7 +46,7 @@ private:
 	sf::Time Now() const;
 
 	void HandleIncomingPackets();
-	void HandleIncomingPackets(sf::Packet& packet, RemotePeer& receiving_peer, bool& detected_timeout);
+	void HandleIncomingPackets(Packet& packet, RemotePeer& receiving_peer, bool& detected_timeout);
 
 	sf::Vector2f ComputeSpawnPosition();
 	sf::Angle ComputeSpawnAngle();
@@ -54,15 +54,14 @@ private:
 	void HandleIncomingConnections();
 	void HandleDisconnections();
 
-	void InformWorldState(sf::TcpSocket& socket);
+	void InformWorldState(UDPSocket& socket);
 	void BroadcastMessage(const std::string& message);
-	void SendToAll(sf::Packet& packet);
+	void SendToAll(Packet& packet);
 	void UpdateClientState();
 
 private:
 	std::thread m_thread;
 	sf::Clock m_clock;
-	sf::TcpListener m_listener_socket;
 	bool m_listening_state;
 	sf::Time m_client_timeout;
 

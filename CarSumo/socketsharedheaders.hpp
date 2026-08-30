@@ -11,3 +11,6 @@
 #include "StringUtils.hpp"
 #include "InFlightPacket.hpp"
 #include "Timing.hpp"
+#include "TransmissionData.hpp"
+#include "Packet.hpp"
+#include "PacketBuffer.hpp"

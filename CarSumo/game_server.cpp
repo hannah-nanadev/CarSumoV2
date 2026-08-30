@@ -33,7 +33,7 @@ GameServer::~GameServer()
 
 void GameServer::NotifyPlayerSpawn(uint8_t car_identifier)
 {
-    sf::Packet packet;
+    Packet packet;
     //First thing in every is what type of packet it is
     packet << static_cast<uint8_t>(Server::PacketType::kPlayerConnect);
     packet << car_identifier << m_car_info[car_identifier].m_position.x << m_car_info[car_identifier].m_position.y << m_car_info[car_identifier].m_rotation << m_car_info[car_identifier].m_car_type;
@@ -42,7 +42,7 @@ void GameServer::NotifyPlayerSpawn(uint8_t car_identifier)
 
 void GameServer::NotifyPlayerRealtimeChange(uint8_t car_identifier, uint8_t action, bool action_enabled)
 {
-    sf::Packet packet;
+    Packet packet;
     //First thing in every is what type of packet it is
     packet << static_cast<uint8_t>(Server::PacketType::kPlayerRealtimeChange);
     packet << car_identifier;
@@ -54,7 +54,7 @@ void GameServer::NotifyPlayerRealtimeChange(uint8_t car_identifier, uint8_t acti
 
 void GameServer::NotifyPlayerEvent(uint8_t car_identifier, uint8_t action)
 {
-    sf::Packet packet;
+    Packet packet;
     std::cout << "Server: Notify Player Event" << +car_identifier << +action << std::endl;
     //First thing in every is what type of packet it is
     packet << static_cast<uint8_t>(Server::PacketType::kPlayerEvent);
@@ -137,7 +137,7 @@ void GameServer::Tick()
     }
     if (all_car_done)
     {
-        sf::Packet mission_success_packet;
+        Packet mission_success_packet;
         mission_success_packet << static_cast<uint8_t>(Server::PacketType::kMissionSuccess);
         SendToAll(mission_success_packet);
     }
@@ -169,7 +169,7 @@ void GameServer::HandleIncomingPackets()
     {
         if (peer->m_ready)
         {
-            sf::Packet packet;
+            Packet packet;
             while (peer->m_socket.receive(packet) == sf::Socket::Status::Done)
             {
                 //Interpret the packet and react to it
@@ -193,7 +193,7 @@ void GameServer::HandleIncomingPackets()
     }
 }
 
-void GameServer::HandleIncomingPackets(sf::Packet& packet, RemotePeer& receiving_peer, bool& detected_timeout)
+void GameServer::HandleIncomingPackets(Packet& packet, RemotePeer& receiving_peer, bool& detected_timeout)
 {
     uint8_t packet_type;
     packet >> packet_type;
@@ -214,7 +214,7 @@ void GameServer::HandleIncomingPackets(sf::Packet& packet, RemotePeer& receiving
         m_car_info[car_identifier].m_rotation = car_rotation;
 		m_car_info[car_identifier].m_hitpoints = hitpoints;
 
-		sf::Packet update_packet;
+		Packet update_packet;
 		update_packet << static_cast<uint8_t>(Server::PacketType::kUpdateCarInfo);
 		update_packet << car_identifier;
         update_packet << car_type;
@@ -297,7 +297,7 @@ void GameServer::HandleIncomingConnections()
         m_car_info[m_car_identifier_counter].m_hitpoints = 100;
         m_car_info[m_car_identifier_counter].m_car_type = static_cast<uint8_t>(CarType::kBasic);
 
-        sf::Packet packet;
+        Packet packet;
         packet << static_cast<uint8_t>(Server::PacketType::kSpawnSelf);
         packet << m_car_identifier_counter;
         packet << m_car_info[m_car_identifier_counter].m_position.x;
@@ -337,7 +337,7 @@ void GameServer::HandleDisconnections()
             //Inform everyone of a disconnection, erase
             for (uint8_t identifer : (*itr)->m_car_identifiers)
             {
-                SendToAll((sf::Packet() << static_cast<uint8_t>(Server::PacketType::kPlayerDisconnect) << identifer));
+                SendToAll((Packet() << static_cast<uint8_t>(Server::PacketType::kPlayerDisconnect) << identifer));
                 m_car_info.erase(identifer);
             }
 
@@ -363,9 +363,9 @@ void GameServer::HandleDisconnections()
     }
 }
 
-void GameServer::InformWorldState(sf::TcpSocket& socket)
+void GameServer::InformWorldState(UDPSocket& socket)
 {
-    sf::Packet packet;
+    Packet packet;
     packet << static_cast<uint8_t>(Server::PacketType::kInitialState);
     packet << static_cast<uint8_t>(m_car_count);
 
@@ -396,7 +396,7 @@ void GameServer::InformWorldState(sf::TcpSocket& socket)
 
 void GameServer::BroadcastMessage(const std::string& message)
 {
-    sf::Packet packet;
+    Packet packet;
     packet << static_cast<uint8_t>(Server::PacketType::kBroadcastMessage);
     packet << message;
     for (std::size_t i = 0; i < m_connected_players; ++i)
@@ -408,20 +408,20 @@ void GameServer::BroadcastMessage(const std::string& message)
     }
 }
 
-void GameServer::SendToAll(sf::Packet& packet)
+void GameServer::SendToAll(Packet& packet)
 {
     for (std::size_t i = 0; i < m_connected_players; ++i)
     {
         if (m_peers[i]->m_ready)
         {
-            m_peers[i]->m_socket.send(packet);
+			PacketBuffer::Send(m_socket, packet, m_peers[i]->m_address);
         }
     }
 }
 
 void GameServer::UpdateClientState()
 {
-    sf::Packet update_client_state_packet;
+    Packet update_client_state_packet;
     update_client_state_packet << static_cast<uint8_t>(Server::PacketType::kUpdateClientState);
     update_client_state_packet << static_cast<float>(m_battlefield_rect.position.y + m_battlefield_rect.size.y);
     update_client_state_packet << static_cast<uint8_t>(m_car_count);
