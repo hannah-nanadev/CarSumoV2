@@ -49,12 +49,11 @@ private:
 	sf::Time Now() const;
 
 	void HandleIncomingPackets();
-	void HandleIncomingPackets(Packet& packet, const SocketAddress& sender_address, bool& detected_timeout);
+	void HandleIncomingPackets(Packet& packet, RemotePeer& receiving_peer, bool& detected_timeout);
 
 	sf::Vector2f ComputeSpawnPosition();
 	sf::Angle ComputeSpawnAngle();
 
-	void HandleIncomingConnections();
 	void HandleDisconnections();
 
 	void InformWorldState(const SocketAddress& client);

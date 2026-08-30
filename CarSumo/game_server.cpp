@@ -102,7 +102,6 @@ void GameServer::ExecutionThread()
     while (!m_waiting_thread_end)
     {
         //This is the game loop
-        HandleIncomingConnections();
         HandleIncomingPackets();
 
         frame_time += frame_clock.getElapsedTime();
@@ -175,32 +174,83 @@ void GameServer::HandleIncomingPackets()
 	SocketAddress address;
 	Packet packet;
 
-    for (PeerPtr& peer : m_peers)
+    //copilot suggested an infinite while loop here which is weird as this method is already called repeatedly. i'm never using another llm for code again after this project
+	int bytes_received = PacketBuffer::Receive(m_socket, packet, address);
+
+    if(bytes_received > 0)
     {
-        if (peer->m_ready)
+        RemotePeer* peer = FindPeerByAddress(address);
+
+        if (!peer)
         {
-            Packet packet;
-            while (peer->m_socket.receive(packet) == sf::Socket::Status::Done)
+            if(m_connected_players < m_max_connected_players)
             {
-                //Interpret the packet and react to it
-                HandleIncomingPackets(packet, *peer, detected_timeout);
+				std::cout << "Server: New connection from " << address.ToString() << std::endl;
 
-                peer->m_last_packet_time = Now();
-                packet.clear();
+                //Order the new client to spawn its player 1
+
+                m_car_info[m_car_identifier_counter].m_position = ComputeSpawnPosition();
+                m_car_info[m_car_identifier_counter].m_rotation = ComputeSpawnAngle().asDegrees();
+                m_car_info[m_car_identifier_counter].m_hitpoints = 100;
+                m_car_info[m_car_identifier_counter].m_car_type = static_cast<uint8_t>(CarType::kBasic);
+
+                Packet packet;
+                packet << static_cast<uint8_t>(Server::PacketType::kSpawnSelf);
+                packet << m_car_identifier_counter;
+                packet << m_car_info[m_car_identifier_counter].m_position.x;
+                packet << m_car_info[m_car_identifier_counter].m_position.y;
+                packet << m_car_info[m_car_identifier_counter].m_rotation;
+
+                m_peers[m_connected_players]->m_car_identifiers.emplace_back(m_car_identifier_counter);
+
+                BroadcastMessage("New player");
+                InformWorldState(m_peers[m_connected_players]->m_address);
+                NotifyPlayerSpawn(m_car_identifier_counter++);
+
+                PacketBuffer::Send(m_socket, packet, m_peers[m_connected_players]->m_address);
+                m_peers[m_connected_players]->m_ready = true;
+                m_peers[m_connected_players]->m_last_packet_time = Now();
+
+                m_car_count++;
+                m_connected_players++;
+
+                if (m_connected_players >= m_max_connected_players)
+                {
+                    SetListening(false);
+                }
+                else
+                {
+                    m_peers.emplace_back(PeerPtr(new RemotePeer()));
+                }
             }
-
-            if (Now() > peer->m_last_packet_time + m_client_timeout)
+            else
             {
-                peer->m_timed_out = true;
-                detected_timeout = true;
-            }
+                std::cerr << "Server: Max connected players reached, ignoring packet from " << address.ToString() << std::endl;
+                return;
+			}
         }
-    }
 
-    if (detected_timeout)
+        if (peer && peer->m_ready)
+        {
+            HandleIncomingPackets(packet, *peer, detected_timeout);
+            peer->m_last_packet_time = Now();
+        }
+        packet.Clear();
+	}
+
+    for(auto& peer : m_peers)
+    {
+        if(peer && !peer->m_timed_out && Now() - peer->m_last_packet_time > m_client_timeout)
+        {
+            std::cout << "Server: Peer " << peer->m_address.ToString() << " timed out." << std::endl;
+            peer->m_timed_out = true;
+            detected_timeout = true;
+        }
+	}
+    if(detected_timeout)
     {
         HandleDisconnections();
-    }
+	}
 }
 
 void GameServer::HandleIncomingPackets(Packet& packet, RemotePeer& receiving_peer, bool& detected_timeout)
@@ -291,6 +341,8 @@ void GameServer::HandleIncomingPackets(Packet& packet, RemotePeer& receiving_pee
     }
 }
 
+/*
+* Allegedly this method is no longer necessary.
 void GameServer::HandleIncomingConnections()
 {
     if (!m_listening_state)
@@ -337,6 +389,7 @@ void GameServer::HandleIncomingConnections()
         }
     }
 }
+*/
 
 void GameServer::HandleDisconnections()
 {
