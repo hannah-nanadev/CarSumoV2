@@ -21,8 +21,7 @@ GameServer::GameServer(sf::Vector2f battlefield_size)
     , m_car_identifier_counter(1)
     , m_waiting_thread_end(false)
 {
-    m_listener_socket.setBlocking(false);
-    m_peers[0].reset(new RemotePeer);
+	m_socket = SocketUtil::CreateUDPSocket(INET);
 }
 
 GameServer::~GameServer()
@@ -68,14 +67,23 @@ void GameServer::SetListening(bool enable)
     //Check if the server is already listening
     if (enable)
     {
-        if (!m_listening_state)
+        if (!m_listening_state && m_socket)
         {
-            m_listening_state = (m_listener_socket.listen(SERVER_PORT) == sf::TcpListener::Status::Done);
+			SocketAddress address(INADDR_ANY, SERVER_PORT);
+			int result = m_socket->Bind(address);
+			m_listening_state = (result == NO_ERROR);
+            if (m_listening_state)
+            {
+                std::cout << "Server: Listening on port " << SERVER_PORT << std::endl;
+            }
+            else
+            {
+                std::cerr << "Server: Failed to bind socket to port " << SERVER_PORT << std::endl;
+            }
         }
     }
     else
     {
-        m_listener_socket.close();
         m_listening_state = false;
     }
 }
@@ -164,6 +172,8 @@ sf::Time GameServer::Now() const
 void GameServer::HandleIncomingPackets()
 {
     bool detected_timeout = false;
+	SocketAddress address;
+	Packet packet;
 
     for (PeerPtr& peer : m_peers)
     {
@@ -307,10 +317,10 @@ void GameServer::HandleIncomingConnections()
         m_peers[m_connected_players]->m_car_identifiers.emplace_back(m_car_identifier_counter);
 
         BroadcastMessage("New player");
-        InformWorldState(m_peers[m_connected_players]->m_socket);
+        InformWorldState(m_peers[m_connected_players]->m_address);
         NotifyPlayerSpawn(m_car_identifier_counter++);
 
-        m_peers[m_connected_players]->m_socket.send(packet);
+		PacketBuffer::Send(m_socket, packet, m_peers[m_connected_players]->m_address);
         m_peers[m_connected_players]->m_ready = true;
         m_peers[m_connected_players]->m_last_packet_time = Now();
 
@@ -363,7 +373,7 @@ void GameServer::HandleDisconnections()
     }
 }
 
-void GameServer::InformWorldState(UDPSocket& socket)
+void GameServer::InformWorldState(const SocketAddress& client)
 {
     Packet packet;
     packet << static_cast<uint8_t>(Server::PacketType::kInitialState);
@@ -391,7 +401,7 @@ void GameServer::InformWorldState(UDPSocket& socket)
         }
     }
 
-    socket.send(packet);
+	PacketBuffer::Send(m_socket, packet, client);
 }
 
 void GameServer::BroadcastMessage(const std::string& message)
@@ -403,7 +413,7 @@ void GameServer::BroadcastMessage(const std::string& message)
     {
         if (m_peers[i]->m_ready)
         {
-            m_peers[i]->m_socket.send(packet);
+            PacketBuffer::Send(m_socket, packet, m_peers[i]->m_address);
         }
     }
 }
@@ -440,7 +450,6 @@ GameServer::RemotePeer::RemotePeer()
     : m_ready(false)
     , m_timed_out(false)
 {
-    m_socket.setBlocking(false);
 }
 
 sf::Vector2f GameServer::ComputeSpawnPosition() //TODO make them spawn in a circle around the center of the battlefield instead of a line
@@ -455,4 +464,14 @@ sf::Vector2f GameServer::ComputeSpawnPosition() //TODO make them spawn in a circ
 sf::Angle GameServer::ComputeSpawnAngle()
 {
     return sf::degrees(-90.f); //TODO make this rotate them properly in circle
+}
+
+GameServer::RemotePeer* GameServer::FindPeerByAddress(const SocketAddress& address)
+{
+    auto found = m_peer_by_address.find(address);
+    if (found != m_peer_by_address.end())
+    {
+        return found->second;
+    }
+    return nullptr;
 }

@@ -3,8 +3,9 @@
 
 class PacketBuffer
 {
-	static constexpr size_t MAX_PACKET_SIZE = 512; // Maximum size of a UDP packet. Adjust as needed
+public:
+	static constexpr int MAX_PACKET_SIZE = 4096; // Maximum size of a UDP packet. Adjust as needed
 
-	size_t Send(const UDPSocketPtr& socket, const Packet& packet, const SocketAddress& address);
-	size_t Receive(const UDPSocketPtr& socket, Packet& packet, SocketAddress& address);
+	static int Send(const UDPSocketPtr& socket, const Packet& packet, const SocketAddress& address);
+	static int Receive(const UDPSocketPtr& socket, Packet& packet, SocketAddress& address);
 };
