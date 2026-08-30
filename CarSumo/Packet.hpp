@@ -12,7 +12,7 @@ class Packet
 {
 public:
 	Packet();
-	explicit Packet(const std::vector<uint_8t>& data);
+	Packet(const std::vector<uint_8t>& data);
 	
 	const uint8_t* GetData() const;
 	int GetSize() const;

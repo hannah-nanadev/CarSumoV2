@@ -20,6 +20,11 @@ Application::Application()
 	, m_p2_car(CarType::kBasic)
 	, m_stack(State::Context(m_window, m_textures, m_fonts, m_music, m_sound, m_key_binding_1, m_key_binding_2, m_p1_car, m_p2_car))
 {
+	if(!SocketUtil::StaticInit())
+	{
+		throw std::runtime_error("Failed to initialize sockets");
+	}
+
 	m_window.setKeyRepeatEnabled(false);
 	m_fonts.Load(FontID::kMain, "Media/Fonts/Sansation.ttf");
 	m_textures.Load(TextureID::kTitleScreen, "Media/Textures/TitleScreen.png");
@@ -96,4 +101,7 @@ void Application::RegisterStates()
 	m_stack.RegisterState<GameOverState>(StateID::kDraw, "Draw...");
 }
 
-
+Application::~Application()
+{
+	SocketUtil::CleanUp();
+}

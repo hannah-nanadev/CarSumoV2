@@ -5,7 +5,6 @@
 #include "car.hpp"
 
 #include "network_protocol.hpp"
-#include <SFML/Network/Packet.hpp>
 
 #include <map>
 
@@ -44,10 +43,11 @@ struct CarTurner
     int car_id;
 };
 
-Player::Player(sf::TcpSocket* socket, uint8_t identifier, const KeyBinding* binding)
+Player::Player(UDPSocketPtr socket, uint8_t identifier, const KeyBinding* binding, const SocketAddress* address)
     : m_key_binding(binding)
     , m_identifier(identifier)
     , m_socket(socket)
+	, m_address(address)
 {
     InitialiseActions();
 
@@ -68,11 +68,11 @@ void Player::HandleEvent(const sf::Event& event, CommandQueue& command_queue)
             // Network connected -> send event over network
             if (m_socket)
             {
-                sf::Packet packet;
+                Packet packet;
                 packet << static_cast<uint8_t>(Client::PacketType::kPlayerEvent);
                 packet << m_identifier;
                 packet << static_cast<uint8_t>(action);
-                m_socket->send(packet);
+				PacketBuffer::Send(m_socket, packet, *m_address);
             }
 
             // Network disconnected -> local event
@@ -101,12 +101,12 @@ void Player::HandleEvent(const sf::Event& event, CommandQueue& command_queue)
         if (m_key_binding && m_key_binding->CheckAction(keyData->code, action) && IsRealtimeAction(action))
         {
             // Send realtime change over network
-            sf::Packet packet;
+            Packet packet;
             packet << static_cast<uint8_t>(Client::PacketType::kPlayerRealtimeChange);
             packet << m_identifier;
             packet << static_cast<uint8_t>(action);
             packet << keyData->isPressed;
-            m_socket->send(packet);
+			PacketBuffer::Send(m_socket, packet, *m_address);
         }
     }
 }
@@ -121,12 +121,12 @@ void Player::DisableAllRealtimeActions(bool enable)
 {
     for (auto& action : m_action_proxies)
     {
-        sf::Packet packet;
+        Packet packet;
         packet << static_cast<uint8_t>(Client::PacketType::kPlayerRealtimeChange);
         packet << m_identifier;
         packet << static_cast<uint8_t>(action.first);
         packet << enable;
-        m_socket->send(packet);
+		PacketBuffer::Send(m_socket, packet, *m_address);
     }
 }
 

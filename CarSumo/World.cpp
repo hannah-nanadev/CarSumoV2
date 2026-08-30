@@ -96,6 +96,11 @@ Car* World::AddCar(uint8_t identifier, CarType type)
 
 bool World::PollGameAction(GameActions::Action& out)
 {
+	//Null check suggested by Copilot - prompt: Upon loading into a game as host, a read access violation immediately occurs, seemingly before the car can be spawned. Why is this?
+	if(m_network_node == nullptr)
+	{
+		return false;
+	}
 	return m_network_node->PollGameAction(out);
 }
 

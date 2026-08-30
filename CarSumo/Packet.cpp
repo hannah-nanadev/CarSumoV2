@@ -8,7 +8,7 @@ Packet::Packet() :
 {
 }
 
-explicit Packet::Packet(const std::vector<uint_8t>& data) :
+Packet::Packet(const std::vector<uint_8t>& data) :
 	m_data(data),
 	m_write_pos(data.size()),
 	m_read_pos(0)

@@ -1,5 +1,8 @@
 //Hannah Kellett D00260463
 
+//changes to this and cpp file made with assistance from Copilot, via the following prompt:
+//I need some help updating multiplayer_gamestate to match the changes made in game_server. You may have to reread that file to see how everything looks.
+
 #pragma once
 #include "state.hpp"
 #include "world.hpp"
@@ -11,16 +14,16 @@ class MultiplayerGameState : public State
 {
 public:
 	MultiplayerGameState(StateStack& stack, Context context, bool is_host);
+	virtual ~MultiplayerGameState();
 	virtual void Draw();
 	virtual bool Update(sf::Time dt);
 	virtual bool HandleEvent(const sf::Event& event);
 	virtual void OnActivate();
-	void OnDestroy();
 	void DisableAllRealtimeActions(bool enable);
 
 private:
 	void UpdateBroadcastMessage(sf::Time elpased_time);
-	void HandlePacket(uint8_t packet_type, sf::Packet& packet);
+	void HandlePacket(uint8_t packet_type, Packet& packet);
 
 private:
 	typedef std::unique_ptr<Player> PlayerPtr;
@@ -34,7 +37,8 @@ private:
 	std::vector<uint8_t> m_local_player_identifiers;
 	CarType m_player1_car_type;
 	CarType m_player2_car_type;
-	sf::TcpSocket m_socket;
+	UDPSocketPtr m_socket;
+	SocketAddress m_address;
 	bool m_connected;
 	std::unique_ptr<GameServer> m_game_server;
 	sf::Clock m_tick_clock;

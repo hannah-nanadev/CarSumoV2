@@ -22,6 +22,11 @@ GameServer::GameServer(sf::Vector2f battlefield_size)
     , m_waiting_thread_end(false)
 {
 	m_socket = SocketUtil::CreateUDPSocket(INET);
+	m_peers.reserve(m_max_connected_players + 1);
+    for(std::uint8_t i = 0; i < m_max_connected_players; ++i)
+    {
+        m_peers.emplace_back(PeerPtr(new RemotePeer()));
+	}
 }
 
 GameServer::~GameServer()
@@ -170,6 +175,12 @@ sf::Time GameServer::Now() const
 
 void GameServer::HandleIncomingPackets()
 {
+    if(!m_socket)
+    {
+        std::cerr << "Server: Socket not initialized." << std::endl;
+        return;
+	}
+
     bool detected_timeout = false;
 	SocketAddress address;
 	Packet packet;
@@ -187,29 +198,39 @@ void GameServer::HandleIncomingPackets()
             {
 				std::cout << "Server: New connection from " << address.ToString() << std::endl;
 
-                //Order the new client to spawn its player 1
+                if(m_connected_players >= m_peers.size())
+                {
+                    m_peers.emplace_back(PeerPtr(new RemotePeer()));
+				}
 
+                //Order the new client to spawn its player 1
                 m_car_info[m_car_identifier_counter].m_position = ComputeSpawnPosition();
                 m_car_info[m_car_identifier_counter].m_rotation = ComputeSpawnAngle().asDegrees();
                 m_car_info[m_car_identifier_counter].m_hitpoints = 100;
                 m_car_info[m_car_identifier_counter].m_car_type = static_cast<uint8_t>(CarType::kBasic);
 
-                Packet packet;
-                packet << static_cast<uint8_t>(Server::PacketType::kSpawnSelf);
-                packet << m_car_identifier_counter;
-                packet << m_car_info[m_car_identifier_counter].m_position.x;
-                packet << m_car_info[m_car_identifier_counter].m_position.y;
-                packet << m_car_info[m_car_identifier_counter].m_rotation;
+                Packet spawn_packet;
+                spawn_packet << static_cast<uint8_t>(Server::PacketType::kSpawnSelf);
+                spawn_packet << m_car_identifier_counter;
+                spawn_packet << m_car_info[m_car_identifier_counter].m_position.x;
+                spawn_packet << m_car_info[m_car_identifier_counter].m_position.y;
+                spawn_packet << m_car_info[m_car_identifier_counter].m_rotation;
 
+                //Set peer address before it is used - this and register new peer were Copilot suggestions but I do not know if they worked and I am tired and nothing is working. I keep getting read access violations.
+				m_peers[m_connected_players]->m_address = address;
                 m_peers[m_connected_players]->m_car_identifiers.emplace_back(m_car_identifier_counter);
+				m_peers[m_connected_players]->m_ready = true;
+				m_peers[m_connected_players]->m_last_packet_time = Now();
 
                 BroadcastMessage("New player");
                 InformWorldState(m_peers[m_connected_players]->m_address);
-                NotifyPlayerSpawn(m_car_identifier_counter++);
+                NotifyPlayerSpawn(m_car_identifier_counter);
+				m_car_identifier_counter++;
 
-                PacketBuffer::Send(m_socket, packet, m_peers[m_connected_players]->m_address);
-                m_peers[m_connected_players]->m_ready = true;
-                m_peers[m_connected_players]->m_last_packet_time = Now();
+                PacketBuffer::Send(m_socket, spawn_packet, m_peers[m_connected_players]->m_address);
+                
+                //Register new peer
+				m_peer_by_address[address] = m_connected_players;
 
                 m_car_count++;
                 m_connected_players++;
@@ -524,7 +545,11 @@ GameServer::RemotePeer* GameServer::FindPeerByAddress(const SocketAddress& addre
     auto found = m_peer_by_address.find(address);
     if (found != m_peer_by_address.end())
     {
-        return found->second;
+        std::uint8_t peer_index = found->second;
+        if (peer_index < m_peers.size() && m_peers[peer_index])
+        {
+            return m_peers[peer_index].get();
+		}
     }
     return nullptr;
 }

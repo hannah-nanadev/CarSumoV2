@@ -24,7 +24,8 @@ namespace Client
 {
 	enum class PacketType
 	{
-		kPlayerInformation, //This is sent when the client connects to the server. It sends the car type
+		kHello, //This is sent when the client connects to the server. No arguments.
+		kPlayerInformation, //This is sent shortly after the client connects to the server. It sends the car type
 		kPlayerEvent, // Two sf::Int32, car identifer and event. It is used to request the server to trigger an event on the car
 		kPlayerRealtimeChange, // The same kPlayerEvent, additionally takes a boolean for real time action
 		kStateUpdate, //sf::Int32 with number of local car, for each car send sf::Int32 identifier, two floats for position, health and ammo 

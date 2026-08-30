@@ -48,9 +48,11 @@ private:
 
 	sockaddr mSockAddr;
 #if _WIN32
+public:
 	uint32_t& GetIP4Ref() { return *reinterpret_cast<uint32_t*>(&GetAsSockAddrIn()->sin_addr.S_un.S_addr); }
 	const uint32_t& GetIP4Ref()			const { return *reinterpret_cast<const uint32_t*>(&GetAsSockAddrIn()->sin_addr.S_un.S_addr); }
 #else
+public:
 	uint32_t& GetIP4Ref() { return GetAsSockAddrIn()->sin_addr.s_addr; }
 	const uint32_t& GetIP4Ref()			const { return GetAsSockAddrIn()->sin_addr.s_addr; }
 #endif

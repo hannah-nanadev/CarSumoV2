@@ -5,13 +5,11 @@
 #include "utility.hpp"
 
 #include <SFML/Graphics/RenderWindow.hpp>
-#include <SFML/Network/Packet.hpp>
-#include <SFML/Network/IpAddress.hpp>
 
 #include <fstream>
 #include <iostream>
 
-sf::IpAddress GetAddressFromFile()
+uint32_t GetAddressFromFile()
 {
 	{
 		//Try to open existing file
@@ -19,18 +17,18 @@ sf::IpAddress GetAddressFromFile()
 		std::string ip_address;
 		if (input_file >> ip_address)
 		{
-			if (auto address = sf::IpAddress::resolve(ip_address))
+			if (auto address = SocketAddressFactory::CreateIPv4FromString(ip_address + std::to_string(SERVER_PORT)))
 			{
-				return *address;
+				return address->GetIP4Ref();
 			}
 		}
 	}
 
 	//If the open/read failed, create a new file
 	std::ofstream output_file("ip.txt");
-	sf::IpAddress local_address = sf::IpAddress::LocalHost;
-	output_file << local_address.toString();
-	return local_address;
+	std::string local_address = "127.0.0.1";
+	output_file << local_address;
+	return INADDR_LOOPBACK;
 }
 
 MultiplayerGameState::MultiplayerGameState(StateStack& stack, Context context, bool is_host)
@@ -67,29 +65,48 @@ MultiplayerGameState::MultiplayerGameState(StateStack& stack, Context context, b
 	m_failed_connection_text.setString("Failed to connect to server");
 	Utility::CentreOrigin(m_failed_connection_text);
 
+	//Create socket
+	m_socket = SocketUtil::CreateUDPSocket(INET);
+	if(m_socket)
+	{
+		m_socket->SetNonBlockingMode(true);
+	}
+	else
+	{
+		std::cerr << "Failed to create UDP socket" << std::endl;
+	}
+
 	//If this is the host, create a server
-	std::optional<sf::IpAddress> ip;
+	uint32_t ip = INADDR_LOOPBACK; //Unsure why this is here? Test without later
 
 	if (m_host)
 	{
 		m_game_server.reset(new GameServer(sf::Vector2f(m_window.getSize())));
-		ip = sf::IpAddress::LocalHost;
+		ip = INADDR_LOOPBACK;
 	}
 	else
 	{
 		ip = GetAddressFromFile();
 	}
-	
-	if (ip)
-	{
-		auto status = m_socket.connect(*ip, SERVER_PORT, sf::seconds(5.f));
 
-		if (status == sf::Socket::Status::Done)
+	//Set server address
+	m_address = SocketAddress(ip, SERVER_PORT);
+	
+	//Send initial packet
+	if (m_socket)
+	{
+		Packet initial;
+		initial << static_cast<uint8_t>(Client::PacketType::kHello);
+		int result = PacketBuffer::Send(m_socket, initial, m_address);
+
+		if (result > 0)
 		{
 			m_connected = true;
+			std::cout << "Connected to server at " << m_address.ToString() << std::endl;
 		}
 		else
 		{
+			std::cout << "Failed to connect to server." << std::endl;
 			m_failed_connection_clock.restart();
 		}
 	}
@@ -98,12 +115,22 @@ MultiplayerGameState::MultiplayerGameState(StateStack& stack, Context context, b
 		m_failed_connection_clock.restart();
 	}
 
-	//Set socket to non-blocking
-	m_socket.setBlocking(false);
-
 	//Play the game music
 	context.music->Play(MusicThemes::kMissionTheme);
 	
+}
+
+MultiplayerGameState::~MultiplayerGameState()
+{
+	m_players.clear();
+	m_local_player_identifiers.clear();
+
+	if (m_host && m_game_server)
+	{
+		m_game_server.reset();
+	}
+
+	m_socket.reset();
 }
 
 void MultiplayerGameState::Draw()
@@ -186,8 +213,11 @@ bool MultiplayerGameState::Update(sf::Time dt)
 		}
 
 		//Handle messages from the server that may have arrived
-		sf::Packet packet;
-		if (m_socket.receive(packet) == sf::Socket::Status::Done)
+		SocketAddress sender;
+		Packet packet;
+		int bytes_received = PacketBuffer::Receive(m_socket, packet, sender);
+
+		if (bytes_received > 0)
 		{
 			m_time_since_last_packet = sf::seconds(0.f);
 			uint8_t packet_type;
@@ -213,19 +243,19 @@ bool MultiplayerGameState::Update(sf::Time dt)
 		GameActions::Action game_action;
 		while (m_world.PollGameAction(game_action))
 		{
-			sf::Packet packet;
+			Packet packet;
 			packet << static_cast<uint8_t>(Client::PacketType::kGameEvent);
 			packet << static_cast<uint8_t>(game_action.type);
 			packet << game_action.position.x;
 			packet << game_action.position.y;
 
-			m_socket.send(packet);
+			PacketBuffer::Send(m_socket, packet, m_address);
 		}
 
 		//Regular position updates
 		if (m_tick_clock.getElapsedTime() > sf::seconds(1.f / 20.f))
 		{
-			sf::Packet position_update_packet;
+			Packet position_update_packet;
 			position_update_packet << static_cast<uint8_t>(Client::PacketType::kStateUpdate);
 			position_update_packet << static_cast<uint8_t>(m_local_player_identifiers.size());
 
@@ -236,7 +266,7 @@ bool MultiplayerGameState::Update(sf::Time dt)
 					position_update_packet << identifier << car->getPosition().x << car->getPosition().y << car->getRotation().asDegrees() << static_cast<uint8_t>(car->GetHitPoints());
 				}
 			}
-			m_socket.send(position_update_packet);
+			PacketBuffer::Send(m_socket, position_update_packet, m_address);
 			m_tick_clock.restart();
 		}
 		m_time_since_last_packet += dt;
@@ -287,17 +317,6 @@ void MultiplayerGameState::OnActivate()
 	m_active_state = true;
 }
 
-void MultiplayerGameState::OnDestroy()
-{
-	if (!m_host && m_connected)
-	{
-		//Inform server this client is dying
-		sf::Packet packet;
-		packet << static_cast<uint8_t>(Client::PacketType::kQuit);
-		m_socket.send(packet);
-	}
-}
-
 void MultiplayerGameState::DisableAllRealtimeActions(bool enable)
 {
 	m_active_state = enable;
@@ -336,7 +355,7 @@ void MultiplayerGameState::UpdateBroadcastMessage(sf::Time elapsed_time)
 	}
 }
 
-void MultiplayerGameState::HandlePacket(uint8_t packet_type, sf::Packet& packet)
+void MultiplayerGameState::HandlePacket(uint8_t packet_type, Packet& packet)
 {
 	switch (static_cast<Server::PacketType>(packet_type))
 	{
@@ -368,18 +387,18 @@ void MultiplayerGameState::HandlePacket(uint8_t packet_type, sf::Packet& packet)
 		Car* car = m_world.AddCar(car_identifier, m_player1_car_type);
 		car->setPosition(car_position);
 		car->setRotation(sf::degrees(car_rotation));
-		m_players[car_identifier].reset(new Player(&m_socket, car_identifier, GetContext().keys1));
+		m_players[car_identifier].reset(new Player(m_socket, car_identifier, GetContext().keys1, &m_address));
 		m_local_player_identifiers.push_back(car_identifier);
 		m_game_started = true;
 
 		//Send a message to the server to inform it of the car type of the connecting client
-		sf::Packet player_info_packet;
+		Packet player_info_packet;
 		player_info_packet << static_cast<uint8_t>(Client::PacketType::kPlayerInformation)
 			<< car_identifier
 			<< static_cast<uint8_t>(m_player1_car_type)
 			<< car_position.x << car_position.y << car_rotation
 			<< static_cast<uint8_t>(car->GetHitPoints());
-		m_socket.send(player_info_packet);
+		PacketBuffer::Send(m_socket, player_info_packet, m_address);
 		std::cout << "Sent player information back to server" << std::endl;
 	}
 	break;
@@ -394,7 +413,7 @@ void MultiplayerGameState::HandlePacket(uint8_t packet_type, sf::Packet& packet)
 		Car* car = m_world.AddCar(car_identifier, static_cast<CarType>(car_type));
 		car->setPosition(car_position);
 		car->setRotation(sf::degrees(car_rotation));
-		m_players[car_identifier].reset(new Player(&m_socket, car_identifier, nullptr));
+		m_players[car_identifier].reset(new Player(m_socket, car_identifier, nullptr, &m_address));
 	}
 	break;
 
@@ -447,7 +466,7 @@ void MultiplayerGameState::HandlePacket(uint8_t packet_type, sf::Packet& packet)
 			car->setRotation(sf::degrees(car_rotation));
 			car->SetHitpoints(hitpoints);
 
-			m_players[car_identifier].reset(new Player(&m_socket, car_identifier, nullptr));
+			m_players[car_identifier].reset(new Player(m_socket, car_identifier, nullptr, &m_address));
 		}
 	}
 	break;

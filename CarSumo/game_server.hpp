@@ -1,12 +1,20 @@
 //Hannah Kellett D00260463
 
+//Some changes to m_listener_socket handling made via the following Copilot prompt:
+//What should I do about references to m_listener_socket? There seem to be a few methods that I'm unsure of their equivalents for my current UDP socket.
+
+//Another prompt was used after issues arose involving a missing operator for m_peer_by_address. Fixing it was as simple as replacing map with unordered_map. The prompt was the compiler error in question, which was so long it doesn't show in my Copilot window, but it started as follows:
+//1>C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\type_traits(2379,60): error C2676: binary '<': 'const _Ty' does not define this operator or a conversion to a type acceptable to the predefined operator
+
 #pragma once
 #include <SFML/System/Vector2.hpp>
 #include <SFML/System/Clock.hpp>
+#include <SFML/System/Time.hpp>
 #include <SFML/Graphics/Rect.hpp>
 #include <thread>
 #include <cstdint>
 #include <map>
+#include <unordered_map>
 
 class GameServer
 {
@@ -81,7 +89,7 @@ private:
 	std::map<uint8_t, CarInfo> m_car_info;
 
 	std::vector<PeerPtr> m_peers;
-	std::map<SocketAddress, RemotePeer*> m_peer_by_address;
+	std::unordered_map<SocketAddress, std::uint8_t> m_peer_by_address;
 	uint8_t m_car_identifier_counter;
 	bool m_waiting_thread_end;
 };
